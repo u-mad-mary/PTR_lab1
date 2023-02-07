@@ -7,11 +7,11 @@ official Elixir [documentation](https://elixir-lang.org/install.html).
 
 The program can be executed by running unit tests:
 ```erlang
-$ mix test
+mix test
 ```
 Or by calling specific functions:
 ```erlang
-$ iex -S mix
+iex -S mix
 iex(1)> LAB0.hello()
 ```
 Where **LAB0** is the module name and **hello()** is the called function.
