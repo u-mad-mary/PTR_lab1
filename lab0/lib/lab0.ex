@@ -7,6 +7,9 @@ defmodule LAB0 do
   end
 
 ### P0W2 ###
+
+  #MINIMAL
+
   # Function that determines whether an input integer is prime.
   def isPrime(n) do
     if n <= 1 do
@@ -47,9 +50,7 @@ defmodule LAB0 do
   def fibonacci(1), do: 1
   def fibonacci(n), do: fibonacci(n-1) + fibonacci(n-2)
   def firstFibonacciElements(n) do
-    for i <- 1..n do
-      fibonacci(i)
-    end
+    Enum.map(1..n, fn i -> fibonacci(i) end)
   end
 
   #Function that, given a dictionary, would translate a sentence. Words not found in the dictionary need not be translated.
@@ -80,7 +81,79 @@ defmodule LAB0 do
   def listRightAngleTriangles() do
     for a <- 1..20, b <- 1..20,
         c = round(:math.sqrt(a*a + b*b)),
-        c*c == a*a + b*b, do: {a, a, c}
+        c*c == a*a + b*b, do: {a, b, c}
   end
+
+  #MAIN
+
+  #Function that eliminates consecutive duplicates in a list.
+  def removeConsecutiveDuplicates(list) do
+    list
+    |> Enum.reduce([], fn x, acc ->
+       if acc == [] || List.first(acc) != x do
+        [x | acc] else acc end end)
+    |> Enum.reverse
+  end
+
+  #Function that, given an array of strings, will return the words that can
+  #be typed using only one row of the letters on an English keyboard layout.
+  def lineWords(list) do
+    rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"]
+
+    list
+    |> Enum.filter(fn x -> Enum.any?(rows, fn row ->
+      x
+      |> String.downcase()
+      |> String.graphemes()
+      |> Enum.all?(fn x -> String.contains?(row, x) end) end)
+    end)
+  end
+
+  #A pair of functions to encode and decode strings using the Caesar cipher.
+  def encode(word, shift) do
+    list = String.to_charlist(word)
+    ciphertext = Enum.map(list, fn x -> x + shift end)
+    List.to_string(ciphertext)
+  end
+
+  def decode(word, shift) do
+    list = String.to_charlist(word)
+    plaintext = Enum.map(list, fn x -> x - shift end)
+    List.to_string(plaintext)
+  end
+
+  #Function that, given a string of digits from 2 to 9, would return all
+  #possible letter combinations that the number could represent (think phones with buttons).
+  def lettersCombinations(digits) do
+    digits
+    |> String.graphemes()
+    |> Enum.map(fn digit ->
+      case digit do
+        "2" -> ["a", "b", "c"]
+        "3" -> ["d", "e", "f"]
+        "4" -> ["g", "h", "i"]
+        "5" -> ["j", "k", "l"]
+        "6" -> ["m", "n", "o"]
+        "7" -> ["p", "q", "r", "s"]
+        "8" -> ["t", "u", "v"]
+        "9" -> ["w", "x", "y", "z"]
+        _ -> []
+      end
+    end)
+    |> Enum.reduce([""], fn list1, list2 ->
+      list2
+      |> Enum.flat_map(fn x -> Enum.map(list1, fn y -> x <> y end) end)
+    end)
+  end
+
+#Function that, given an array of strings, would group the anagrams together.
+def groupAnagrams(list) do
+  list
+  |> Enum.group_by(fn element ->
+  String.split(String.downcase(element), "")
+  |> Enum.sort()
+  |> List.to_string end)
+  |> Enum.map(fn {key, values} -> {key, Enum.map(values, fn x -> x end)} end)
+end
 
 end
