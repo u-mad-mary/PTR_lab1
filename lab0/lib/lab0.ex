@@ -156,4 +156,66 @@ def groupAnagrams(list) do
   |> Enum.map(fn {key, values} -> {key, Enum.map(values, fn x -> x end)} end)
 end
 
+#BONUS
+
+#Function to find the longest common prefix string amongst a list of strings.
+def common_prefix(list) do
+
+  min = Enum.min(list)
+  length = String.length(min)
+
+  Enum.reduce(0..length-1, "", fn i, acc -> chars = Enum.map(list, fn s -> String.at(s, i) end)
+    if Enum.uniq(chars) == [Enum.at(chars, 0)] do
+      acc <> String.slice(Enum.at(chars, 0), 0, 1)
+    else
+      acc
+    end
+  end)
+end
+
+#Function to convert arabic numbers to roman numerals.
+def to_roman(0), do: ""
+def to_roman(nr), do: to_roman(nr, [
+  {1000, "M"},
+  {900, "CM"},
+  {500, "D"},
+  {400, "CD"},
+  {100, "C"},
+  {90, "XC"},
+  {50, "L"},
+  {40, "XL"},
+  {10, "X"},
+  {9, "IX"},
+  {5, "V"},
+  {4, "IV"},
+  {1, "I"}
+])
+
+
+defp to_roman(nr, symbols) do
+  case symbols do
+    [] -> ""
+    [{value, symbol}] when nr >= value -> symbol <> to_roman(nr - value, symbols)
+    [_ | rest] -> to_roman(nr, rest)
+  end
+end
+
+#Function that calculates the prime factorization of an integer
+def factors_of(n, divisor \\ 2) do
+  if n <= 2 do
+    [n]
+  else
+    if rem(n, divisor) == 0 do
+      [divisor | factors_of(div(n, divisor), divisor)]
+    else
+      factors_of(n, divisor + 1)
+    end
+  end
+end
+
+def factorize(n) do
+  result = factors_of(n) |>  Enum.filter(&(LAB0.isPrime/1))
+  Enum.map(result, &to_string/1)
+end
+
 end
