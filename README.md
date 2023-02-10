@@ -12,6 +12,6 @@ mix test
 Or by calling specific functions:
 ```erlang
 iex -S mix
-iex(1)> LAB0.hello()
+iex(1)> WEEK2.hello()
 ```
-Where **LAB0** is the module name and **hello()** is the called function.
+Where **WEEK2** is the module name and **hello()** is the called function.

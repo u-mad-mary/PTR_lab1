@@ -1,5 +1,5 @@
 ### P0W1 ###
-defmodule LAB0 do
+defmodule WEEK2 do
 
   def hello do
     IO.puts("HELLo, PTR!")
@@ -214,7 +214,7 @@ def factors_of(n, divisor \\ 2) do
 end
 
 def factorize(n) do
-  result = factors_of(n) |>  Enum.filter(&(LAB0.isPrime/1))
+  result = factors_of(n) |>  Enum.filter(&(WEEK2.isPrime/1))
   Enum.map(result, &to_string/1)
 end
 
