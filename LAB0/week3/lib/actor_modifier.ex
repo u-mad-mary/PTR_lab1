@@ -8,10 +8,10 @@ defmodule Modifier do
       message ->
         case message do
           integer when is_integer(message) ->
-            IO.puts "Received: #{integer}"
+            IO.puts "Received: #{integer}."
             loop()
           bitstring when is_bitstring(message) ->
-            IO.puts "Received: #{bitstring}"
+            IO.puts "Received: #{bitstring}."
             loop()
           _ ->
             IO.puts "Received: I don’t know how to HANDLE this!"
