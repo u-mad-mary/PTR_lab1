@@ -3,6 +3,7 @@ defmodule Average do
     spawn(__MODULE__, :loop, [0, 1])
   end
 
+  @spec loop(number, number) :: no_return
   def loop(sum, count) do
     average = sum / count
     IO.puts("Current average is #{average}.")
