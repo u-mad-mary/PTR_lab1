@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "mix",
+			"task": "Clean all deps",
+			"group": "clean",
+			"problemMatcher": [],
+			"label": "mix: Clean all deps"
+		}
+	]
+}
