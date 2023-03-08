@@ -142,8 +142,6 @@ defmodule ETS_DataBase do
   end
 
 
-
-
   def init(movies) do
     table = :ets.new(:session, [:set, :public, :named_table])
     populate_table(table, movies)
