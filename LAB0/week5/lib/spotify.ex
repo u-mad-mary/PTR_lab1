@@ -5,7 +5,7 @@ defmodule SpotifyServer do
   plug :dispatch
 
   get "/callback" do
-    send_resp(conn, 200, Spotify.auth())
+    send_resp(conn, 200, SpotifyAccess.auth())
   end
 
   def start do
@@ -14,12 +14,12 @@ defmodule SpotifyServer do
   end
 end
 
-defmodule Spotify do
+defmodule SpotifyAccess do
   use HTTPoison.Base
   require Logger
 
-  @client_id ""
-  @client_secret ""
+  @client_id "PUT_HERE_YOUR_CLIENT_ID"
+  @client_secret "PUT_HERE_YOUR_CLIENT_SECRET"
   @redirect_uri "http://localhost:4000/callback"
 
   def auth do
@@ -79,3 +79,12 @@ defmodule SpotifyAPI do
     HTTPoison.put(url, encoded_image, headers)
   end
 end
+
+
+# Execute in iex:
+# SpotifyServer.start
+# SpotifyAccess.auth
+# SpotifyAccess.get_access_token("PUT_HERE_AUTHENTICATION_TOKEN")
+# SpotifyAPI.create_playlist("ACCESS_TOKEN", "USER_ID", "PLAYLIST_NAME", "DESCRIPTION")
+# SpotifyAPI.add_tracks_to_playlist("ACCESS_TOKEN", ["spotify:track:08mG3Y1vljYA6bvDt4Wqkj", "spotify:track:0vOkmmJEtjuFZDzrQSFzEE:, "OTHER_TRACK_URI"])
+# SpotifyAPI.add_playlist_cover_image("ACCESS_TOKEN", "PLAYLIST_ID", "IMAGE_PATH")
