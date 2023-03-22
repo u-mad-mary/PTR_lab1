@@ -6,7 +6,7 @@ defmodule Reader do
   end
 
   def init(url) do
-    IO.puts "=== Stream reader #{inspect(self())} is started ==="
+    #IO.puts "=== Stream reader #{inspect(self())} is started ==="
     HTTPoison.get!(url, [], [recv_timeout: :infinity, stream_to: self()])
     {:ok, nil}
   end
@@ -31,10 +31,6 @@ defmodule Reader do
     {:noreply, nil}
   end
 
-  defp stream_processing("event: \"message\"\n\ndata: {\"message\": panic}\n\n") do
-    PrinterSupervisor.print(:kill)
-  end
-
   defp stream_processing("event: \"message\"\n\ndata: " <> message) do
     {success, data} = Jason.decode(String.trim(message))
 
@@ -42,13 +38,13 @@ defmodule Reader do
       tweet = data["message"]["tweet"]
       text = tweet["text"]
       hashtags = tweet["entities"]["hashtags"]
-      PrinterSupervisor.print(text)
+      PrinterSupervisor.print_spec(text)
       Enum.each(hashtags, fn hashtag -> Statistics.hashtag_stats(hashtag["text"]) end)
     end
   end
 
   defp stream_processing(_other_data) do
-    IO.puts(IO.ANSI.format([:red, "THE END"]))
+    IO.puts("THE END")
     PrinterSupervisor.print(:kill)
   end
 end

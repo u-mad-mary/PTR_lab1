@@ -2,7 +2,7 @@ defmodule ReaderSupervisor do
   use Supervisor
 
   def start_link do
-    IO.puts(IO.ANSI.format([:green, "=== ReaderSupervisor has started ==="]))
+    #IO.puts(IO.ANSI.format([:green, "=== ReaderSupervisor has started ==="]))
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
 
   end

@@ -1,15 +1,17 @@
 defmodule MainSupervisor do
   use Supervisor
 
-  @nr_of_workers 3
-
-  def start_link(nr \\ @nr_of_workers) do
+  def start_link do
     IO.puts(IO.ANSI.format([:green, "==== Main Supervisor has started ==="]))
-    Supervisor.start_link(__MODULE__, nr, name: __MODULE__)
+    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def init(nr) do
+  def init([]) do
     children = [
+      %{
+        id: :printer_supervisor,
+        start: {PrinterSupervisor, :start_link, []}
+      },
       %{
         id: :load_balancer,
         start: {LoadBalancer, :start_link, []}
@@ -19,8 +21,8 @@ defmodule MainSupervisor do
         start: {Statistics, :start_link, []}
       },
       %{
-        id: :printer_supervisor,
-        start: {PrinterSupervisor, :start_link, [nr]}
+        id: :cache,
+        start: {Cache, :start_link, []}
       },
       %{
         id: :reader_supervisor,

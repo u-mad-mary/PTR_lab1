@@ -1,9 +1,6 @@
 defmodule Printer do
   use GenServer
 
-  @max_time 50
-  @min_time 5
-
   def start_link(id) do
     GenServer.start_link(__MODULE__, id)
   end
@@ -12,8 +9,8 @@ defmodule Printer do
     {:ok, state}
   end
 
-  def print(worker, twt) do
-    GenServer.cast(worker, twt)
+  def print(worker_pid, twt) do
+    GenServer.cast(worker_pid, twt)
   end
 
   def handle_cast(:kill, state) do
@@ -23,10 +20,26 @@ defmodule Printer do
   end
 
   def handle_cast(twt, state) do
-    :timer.sleep(:rand.uniform(@max_time) + @min_time)
-    IO.puts("Printer#{inspect(state)} : #{inspect(twt)}")
-    LoadBalancer.release_worker(state)
-    IO.puts(IO.ANSI.format([:yellow, "Printer #{inspect(state)} is released"]))
-    {:noreply, state}
+    hash = :crypto.hash(:md5, twt) |> Base.encode16()
+    case Cache.get(hash) do
+      true ->
+        LoadBalancer.release_worker(state)
+        {:noreply, state}
+      false ->
+        Cache.put(hash)
+        twt = filter_bad_words(twt)
+        IO.puts("Printer #{inspect(state)} : #{inspect(twt)}")
+        LoadBalancer.release_worker(state)
+        #IO.puts(IO.ANSI.format([:yellow, "Printer #{inspect(state)} is released."]))
+        {:noreply, state}
+    end
   end
+
+  defp filter_bad_words(twt) do
+    encoded_twt = URI.encode(twt)
+    url = "https://www.purgomalum.com/service/plain?text=#{encoded_twt}"
+    response = HTTPoison.get!(url)
+    response.body
+  end
+
 end
