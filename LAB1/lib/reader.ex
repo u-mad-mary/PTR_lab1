@@ -1,12 +1,14 @@
 defmodule Reader do
   use GenServer
 
+  @nr_of_workers 3
+
   def start_link(url) do
+    #IO.puts "=== Stream reader #{inspect(self())} is started ==="
     GenServer.start_link(__MODULE__, url)
   end
 
   def init(url) do
-    #IO.puts "=== Stream reader #{inspect(self())} is started ==="
     HTTPoison.get!(url, [], [recv_timeout: :infinity, stream_to: self()])
     {:ok, nil}
   end
@@ -17,17 +19,17 @@ defmodule Reader do
   end
 
   def handle_info(%HTTPoison.AsyncStatus{} = status, _state) do
-    IO.puts "Connection status: #{inspect(status)}"
+    IO.puts "\n Connection status: #{inspect status}"
     {:noreply, nil}
   end
 
   def handle_info(%HTTPoison.AsyncHeaders{} = headers, _state) do
-    IO.puts "Connection headers: #{inspect(headers)}"
+    IO.puts "\n Connection headers: #{inspect headers}"
     {:noreply, nil}
   end
 
   def handle_info(%HTTPoison.AsyncEnd{} = connection_end, _state) do
-    IO.puts "Connection end: #{inspect(connection_end)}"
+    IO.puts "\n Connection end: #{inspect connection_end}"
     {:noreply, nil}
   end
 
@@ -35,16 +37,32 @@ defmodule Reader do
     {success, data} = Jason.decode(String.trim(message))
 
     if success == :ok do
-      tweet = data["message"]["tweet"]
-      text = tweet["text"]
-      hashtags = tweet["entities"]["hashtags"]
-      PrinterSupervisor.print_spec(text)
-      Enum.each(hashtags, fn hashtag -> Statistics.hashtag_stats(hashtag["text"]) end)
+      send_to_worker_pool(data["message"]["tweet"])
     end
   end
 
   defp stream_processing(_other_data) do
-    IO.puts("THE END")
-    PrinterSupervisor.print(:kill)
+    twt = {{:kill, {}}, []}
+
+    id = Enum.random(1..@nr_of_workers)
+    LeGrandWorkerPool.print(id, twt)
+  end
+
+  defp send_to_worker_pool(tweet) do
+    data = tweet["text"]
+    favorites = tweet["favorite_count"]
+    retweets = tweet["retweet_count"]
+    followers = tweet["user"]["followers_count"]
+    name = tweet["user"]["name"]
+    hashtags = Enum.map(tweet["entities"]["hashtags"], fn hashtag -> hashtag["text"] end)
+
+    twt = {{data, {favorites, retweets, followers, name}}, hashtags}
+
+    id = Enum.random(1..@nr_of_workers)
+    LeGrandWorkerPool.print(id, twt)
+
+    if Map.get(tweet, "retweeted_status", nil) != nil do
+      send_to_worker_pool(tweet["retweeted_status"])
+    end
   end
 end

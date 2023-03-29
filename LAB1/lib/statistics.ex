@@ -4,17 +4,16 @@ defmodule Statistics do
   @time_unit 5000
 
   def start_link do
-    #IO.puts "=== Stastistician is started ==="
-    GenServer.start_link(__MODULE__,  %{}, name: __MODULE__)
+     #IO.puts "=== Stastistician is started ==="
+    GenServer.start_link(__MODULE__, %{})
   end
 
   def init(state) do
     scheduler()
     {:ok, state}
   end
-
-  def hashtag_stats(hashtag) do
-    GenServer.cast(__MODULE__, hashtag)
+  def hashtag_stats(pid, hashtag) do
+    GenServer.cast(pid, hashtag)
   end
 
   def handle_info(:work, state) do
@@ -22,8 +21,20 @@ defmodule Statistics do
     case hashtags do
       [] -> {:noreply, %{}}
       _ ->
-        IO.puts(IO.ANSI.format([:blue, "\nTop 5 hashtags in the last #{@time_unit} seconds:"]))
-        hashtags |> Enum.each(fn {hashtag, count} -> IO.puts(IO.ANSI.format([:blue, "#{hashtag}: #{count}"])) end)
+
+        top_hashtags =
+          Enum.reduce(hashtags, "", fn {k, v}, acc ->
+            acc <> "#{k}: #{v}\n"
+          end)
+
+        IO.puts(IO.ANSI.format([:white, "\nTop 5 hashtags in the last 5 seconds:"]))
+        result_string =
+          top_hashtags
+          |> String.split("\n")
+          |> Enum.join("\n")
+
+        IO.puts(IO.ANSI.format([:white, result_string]))
+
         scheduler()
         {:noreply, %{}}
     end
@@ -31,11 +42,10 @@ defmodule Statistics do
 
   def handle_cast(hashtag, state) do
     state = Map.update(state, hashtag, 1, &(&1 + 1))
-    {:noreply, state}
+    {:noreply,state}
   end
 
   defp scheduler do
     Process.send_after(self(), :work, @time_unit)
   end
-
 end

@@ -1,19 +1,31 @@
 defmodule Cache do
-  use Agent
+  use GenServer
 
   def start_link do
-    Agent.start_link(fn -> %{} end, name: __MODULE__)
+    GenServer.start_link(__MODULE__, %{})
   end
 
-  def get(key) do
-    Agent.get(__MODULE__, fn state ->
-      Map.has_key?(state, key)
-    end)
+  def init(state) do
+    {:ok, state}
   end
 
-  def put(key) do
-    Agent.update(__MODULE__, fn state ->
-      Map.put(state, key, true)
-    end)
+  def get(pid, key) do
+    GenServer.call(pid, {:get, key})
+  end
+
+  def put(pid, key) do
+    GenServer.cast(pid, {:put, key})
+  end
+
+  def handle_call({:get, key}, _from, state) do
+    case Map.fetch(state, key) do
+      {:ok, _} -> {:reply, true, state}
+      :error -> {:reply, false, state}
+    end
+  end
+
+  def handle_cast({:put, key}, state) do
+    new_state = Map.put(state, key, true)
+    {:noreply, new_state}
   end
 end
