@@ -13,11 +13,11 @@ defmodule Batcher do
     {:ok, state}
   end
 
-  def add(pid, item) do
-    GenServer.cast(pid, {:add, item})
+  def request(pid, item) do
+    GenServer.cast(pid, {:request, item})
   end
 
-  def handle_cast({:add, item}, state) do
+  def handle_cast({:request, item}, state) do
     {items, timestamp} = state
     items = [item | items]
     if Enum.count(items) == @size do

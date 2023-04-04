@@ -25,20 +25,26 @@ defmodule Aggregator do
     GenServer.cast(pid, {:set_batcher, batcher})
   end
 
-  def handle_cast({:set_batcher, batcher}, {items, _}) do
-    {:noreply, {items, batcher}}
+  def handle_cast({:set_batcher, batcher}, {items, count}) do
+    {:noreply, {items, count, batcher}}
   end
 
-  def handle_cast({:add, action, hash, value}, {items, batcher}) do
-    item = Map.get(items, hash, %{})
-    item = Map.put(item, action, value)
+  def handle_cast({:add, action, hash, value}, {items, count, batcher} = state) do
+    case Process.alive?(batcher) do
+      true ->
+        item = Map.get(items, hash, %{})
+        item = Map.put(item, action, value)
 
-    if Map.keys(item) |> Enum.sort() == [:text, :sentiment, :engagement] |> Enum.sort() do
-      twt = format_message(hash, item)
-      Batcher.add(batcher, twt)
-      {:noreply, {Map.delete(items, hash), batcher}}
-    else
-      {:noreply, {Map.put(items, hash, item), batcher}}
+        if Map.keys(item) |> Enum.sort() == [:text, :sentiment, :engagement] |> Enum.sort() do
+          msg = format_message(count, hash, item)
+          Batcher.request(batcher, msg)
+          {:noreply, {Map.delete(items, hash), count + 1, batcher}}
+        else
+          {:noreply, {Map.put(items, hash, item), count, batcher}}
+        end
+      false ->
+        IO.puts("Batcher process is not alive")
+        {:noreply, state}
     end
   end
 
@@ -46,7 +52,7 @@ defmodule Aggregator do
     GenServer.cast(pid, {:add, action, hash, value})
   end
 
-  defp format_message(_hash, item) do
-    "\n============================== Tweet ==============================\n Text: #{Map.get(item, :text, "")}\n Sentiment: #{Map.get(item, :sentiment, 0)}\n Engagement Rate: #{Map.get(item, :engagement, 0)}"
+  defp format_message(count, _hash, item) do
+    "\n ============================== Tweet #{count} ============================== \n Text: #{Map.get(item, :text, "")} \n\t- Sentiment: #{Map.get(item, :sentiment, 0)}\n\t- Engagement: #{Map.get(item, :engagement, 0)}\n\t"
   end
 end
