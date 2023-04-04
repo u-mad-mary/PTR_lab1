@@ -43,7 +43,7 @@ defmodule Aggregator do
           {:noreply, {Map.put(items, hash, item), count, batcher}}
         end
       false ->
-        IO.puts("Batcher process is not alive")
+        IO.puts("Batcher process is not ready to recieve data.\n")
         {:noreply, state}
     end
   end
