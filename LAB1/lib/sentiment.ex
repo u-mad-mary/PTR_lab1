@@ -28,7 +28,7 @@ defmodule Sentiment do
       end
     end) / Enum.count(words)
 
-    Aggregator.add_sentiment(aggregator, hash, mean_score)
+    Aggregator.collect_sentiment(aggregator, hash, mean_score)
 
     {:reply, mean_score, state}
   end

@@ -9,15 +9,15 @@ defmodule Aggregator do
     {:ok, state}
   end
 
-  def add_text(pid, hash, text) do
+  def collect_text(pid, hash, text) do
     add(pid, hash, :text, text)
   end
 
-  def add_sentiment(pid, hash, sentiment) do
+  def collect_sentiment(pid, hash, sentiment) do
     add(pid, hash, :sentiment, sentiment)
   end
 
-  def add_engagement(pid, hash, engagement) do
+  def collect_engagement(pid, hash, engagement) do
     add(pid, hash, :engagement, engagement)
   end
 
@@ -43,7 +43,7 @@ defmodule Aggregator do
           {:noreply, {Map.put(items, hash, item), count, batcher}}
         end
       false ->
-        IO.puts("Batcher process is not ready to recieve data.\n")
+        IO.puts("Batcher is not ready to recieve data.\n")
         {:noreply, state}
     end
   end

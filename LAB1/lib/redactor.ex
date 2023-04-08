@@ -19,7 +19,7 @@ defmodule Redactor do
     clean_msg = HTTPoison.get!("https://www.purgomalum.com/service/plain?text=#{twt}")
     |> Map.get(:body)
 
-    Aggregator.add_text(aggregator, hash, clean_msg)
+    Aggregator.collect_text(aggregator, hash, clean_msg)
 
     {:reply, clean_msg, state}
   end

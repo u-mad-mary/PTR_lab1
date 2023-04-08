@@ -29,7 +29,7 @@ defmodule Batcher do
   end
 
   defp scheduler do
-    Process.send_after(self(), :work, @time_unit)
+    Process.send_after(self(), :work, @time_unit * 1000)
   end
 
   def handle_info(:work, state) do
@@ -47,5 +47,4 @@ defmodule Batcher do
       {:noreply, {[], System.system_time(:second)}}
     end
   end
-
 end
