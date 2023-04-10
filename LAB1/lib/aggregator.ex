@@ -10,15 +10,15 @@ defmodule Aggregator do
   end
 
   def collect_text(pid, hash, text) do
-    add(pid, hash, :text, text)
+    place(pid, hash, :text, text)
   end
 
   def collect_sentiment(pid, hash, sentiment) do
-    add(pid, hash, :sentiment, sentiment)
+    place(pid, hash, :sentiment, sentiment)
   end
 
   def collect_engagement(pid, hash, engagement) do
-    add(pid, hash, :engagement, engagement)
+    place(pid, hash, :engagement, engagement)
   end
 
   def set_batcher(pid, batcher) do
@@ -29,7 +29,7 @@ defmodule Aggregator do
     {:noreply, {items, count, batcher}}
   end
 
-  def handle_cast({:add, action, hash, value}, {items, count, batcher} = state) do
+  def handle_cast({:place, action, hash, value}, {items, count, batcher} = state) do
     case Process.alive?(batcher) do
       true ->
         item = Map.get(items, hash, %{})
@@ -48,8 +48,8 @@ defmodule Aggregator do
     end
   end
 
-  defp add(pid, hash, action, value) do
-    GenServer.cast(pid, {:add, action, hash, value})
+  defp place(pid, hash, action, value) do
+    GenServer.cast(pid, {:place, action, hash, value})
   end
 
   defp format_message(count, _hash, item) do
