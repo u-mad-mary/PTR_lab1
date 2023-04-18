@@ -4,12 +4,12 @@ defmodule UserCache do
   @time_unit 5000
 
   def start_link do
-    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+    GenServer.start_link(__MODULE__, :ets.new(:user_cache, [:set, :public]), name: __MODULE__)
   end
 
-  def init(state) do
+  def init(ets_table) do
     scheduler()
-    {:ok, state}
+    {:ok, ets_table}
   end
 
   defp scheduler do
@@ -20,15 +20,18 @@ defmodule UserCache do
     GenServer.cast(__MODULE__, {:set, k, v})
   end
 
-  def handle_cast({:set, k, v}, state) do
-    new_state = Map.update(state, k, v, &(&1 + v))
-    {:noreply, new_state}
+  def handle_cast({:set, key, value}, ets_table) do
+    case :ets.lookup(ets_table, key) do
+      [] -> :ets.insert(ets_table, {key, value})
+      [{^key, old_value}] -> :ets.insert(ets_table, {key, old_value + value})
+    end
+    {:noreply, ets_table}
   end
 
-  def handle_info(:work, state) do
+  def handle_info(:work, ets_table) do
     scheduler()
 
-    items = Map.to_list(state)
+    items = :ets.tab2list(ets_table)
     sorted_items = Enum.sort_by(items, fn {_, v} -> v end, &>=/2)
 
     top_eng =
@@ -45,6 +48,7 @@ defmodule UserCache do
 
     IO.puts(IO.ANSI.format([:magenta, result_string]))
 
-    {:noreply, state}
+    {:noreply, ets_table}
   end
+
 end

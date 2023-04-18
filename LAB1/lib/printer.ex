@@ -33,7 +33,7 @@ defmodule Printer do
         LoadBalancer.release_worker(load_balancer_pid, id)
         {:noreply, state}
       false ->
-        Cache.put(cache_pid, hash)
+        Cache.set(cache_pid, hash)
 
         Sentiment.calculate_sentiment(sentiment, text, hash, aggregator_pid)
         Engagement.calculate_engagement(engagement, stats, hash, aggregator_pid)

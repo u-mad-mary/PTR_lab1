@@ -17,14 +17,40 @@ defmodule Batcher do
     GenServer.cast(pid, {:request, item})
   end
 
+  # def handle_cast({:request, item}, state) do
+  #   {items, timestamp} = state
+  #   items = [item | items]
+  #   if Enum.count(items) == @size do
+  #     TweetCache.set(items)
+  #     {:noreply, {[], System.system_time(:second)}}
+  #   else
+  #     {:noreply, {items, timestamp}}
+  #   end
+  # end
+
   def handle_cast({:request, item}, state) do
     {items, timestamp} = state
     items = [item | items]
     if Enum.count(items) == @size do
-      Enum.each(items, fn item -> IO.puts(item) end)
-      {:noreply, {[], System.system_time(:second)}}
+      case check_tweet_cache() do
+        :ok ->
+          TweetCache.set(items)
+          {:noreply, {[], System.system_time(:second)}}
+        :error ->
+          IO.puts("TweetCache is not available, pausing transmission...")
+          {:noreply, {items, timestamp}}
+      end
     else
       {:noreply, {items, timestamp}}
+    end
+  end
+
+  defp check_tweet_cache() do
+    case GenServer.whereis(TweetCache) do
+      nil ->
+        TweetCache.start_link()
+        :error
+      _ -> :ok
     end
   end
 
@@ -43,7 +69,7 @@ defmodule Batcher do
     if elapsed < @time_unit || Enum.count(items) == 0 do
       {:noreply, {items, timestamp}}
     else
-      Enum.each(items, fn item -> IO.puts(item) end)
+      TweetCache.set(items)
       {:noreply, {[], System.system_time(:second)}}
     end
   end

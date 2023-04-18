@@ -5,9 +5,12 @@ defmodule GenSupervisor do
     #IO.puts "=== Starting general supervisor ==="
     Supervisor.start_link(__MODULE__, [])
   end
-
   def init([]) do
     children = [
+      %{
+        id: :tweet_cache,
+        start: {TweetCache, :start_link, []}
+      },
       %{
         id: :user_cache,
         start: {UserCache, :start_link, []}

@@ -17,9 +17,11 @@ defmodule Engagement do
     if followers != 0 do
       engagement = (favorites + retweets) / followers
       UserCache.set(name, engagement)
+      Aggregator.collect_username(aggregator, hash, name)
       Aggregator.collect_engagement(aggregator, hash, engagement)
       {:reply, engagement, state}
     else
+      Aggregator.collect_username(aggregator, hash, name)
       Aggregator.collect_engagement(aggregator, hash, 0)
       {:reply, 0, state}
     end
