@@ -2,11 +2,11 @@ defmodule Cache do
   use GenServer
 
   def start_link do
-    GenServer.start_link(__MODULE__, :ets.new(:cache, [:set, :public]))
+    GenServer.start_link(__MODULE__, %{})
   end
 
-  def init(ets_table) do
-    {:ok, ets_table}
+  def init(state) do
+    {:ok, state}
   end
 
   def get(pid, key) do
@@ -17,15 +17,15 @@ defmodule Cache do
     GenServer.cast(pid, {:set, key})
   end
 
-  def handle_call({:get, key}, _from, ets_table) do
-    case :ets.lookup(ets_table, key) do
-      [{^key, _}] -> {:reply, true, ets_table}
-      [] -> {:reply, false, ets_table}
+  def handle_call({:get, key}, _from, state) do
+    case Map.fetch(state, key) do
+      {:ok, _} -> {:reply, true, state}
+      :error -> {:reply, false, state}
     end
   end
 
-  def handle_cast({:set, key}, ets_table) do
-    :ets.insert(ets_table, {key, true})
-    {:noreply, ets_table}
+  def handle_cast({:set, key}, state) do
+    new_state = Map.put(state, key, true)
+    {:noreply, new_state}
   end
 end
